@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script>
+			function Node(settings) {
+				this.type=settings.type;
+				this.parent=null;
+				if (this.type != "text" && this.type != "button") this.children=settings.children || [];
+				if (this.type == "text" || this.type == "button") this.value=settings.value;
+				this.clickable=settings.clickable;
+				this.hook=settings.hook;
+				this.eventListeners={};
+				if (this.children) this.children.forEach((node)=>{
+					node.parent=this;
+					if (node.hook) this[node.hook]=node;
+				});
+				this.onRender=settings.onRender;
+			}
+			Node.prototype={
+				addEventListener: function(type, listener) {
+					if (!this.eventListeners[type]) this.eventListeners[type]=[];
+					this.eventListeners[type].push(listener);
+				},
+				render: function(realNode) {
+					this.realNode=realNode;
+					if (this.clickable) this.realNode.onclick=(event)=>{
+						if (this.eventListeners["click"]) this.eventListeners["click"].forEach((listener)=>{
+							listener({target: this});
+						});
+					};
+					if (this.type == "text" || this.type == "button") this.realNode.innerHTML=this.value;
+					else {
+						this.realNode.innerHTML="";
+						this.children.forEach((node)=>{
+							let realNode=document.createElement(node.type);
+							this.realNode.appendChild(realNode);
+							node.render(realNode);
+						});
+					}
+					if (this.onRender) this.onRender(this);
+				},
+				repaint: function() {
+					if (this.type == "text" || this.type == "button") this.realNode.innerHTML=this.value;
+				},
+			};
+		</script>
+		<script src="src/document.js"></script>
+		<script>
+			window.onload=()=>{
+				virualDom.realNode=document;
+				virualDom.head=virualDom.children[0];
+				virualDom.head.realNode=document.head;
+				virualDom.body=virualDom.children[1];
+				virualDom.body.render(document.body);
+			};
+		</script>
+	</head>
+	<body></body>
+</html>
+
+
+
