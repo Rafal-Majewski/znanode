@@ -22,7 +22,8 @@ const readdirRecSync=(path, files)=>{
 };
 
 const processSrcFile=(file)=>{
-	let content=terser.minify(String(fs.readFileSync(file)));
+	let component=require(file);
+	let content=terser.minify(file.styles);
 	return content;
 };
 
